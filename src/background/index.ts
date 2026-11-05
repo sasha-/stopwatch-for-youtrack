@@ -9,6 +9,7 @@ import {
 } from "../shared/messages";
 import type { IssueRef, PageIssues, QueuedWorkItem, UiState, WorkType } from "../shared/types";
 import { durationMinutes, formatClock } from "../shared/time";
+import { accentPalette, isHexColor, RUNNING_COLOR } from "../shared/color";
 import { loadPageIssues } from "./page";
 import {
   currentAccount,
@@ -94,6 +95,7 @@ async function broadcast(): Promise<UiState> {
     running: !!state.timer,
     issueId: state.timer?.issue.idReadable ?? null,
     start: state.timer?.start ?? null,
+    accent: state.settings.accent,
   };
   for (const p of panelPorts) {
     try {
@@ -106,16 +108,57 @@ async function broadcast(): Promise<UiState> {
   return state;
 }
 
+/** Draws the stopwatch icon in any colour (same geometry as icons/icon.svg). */
+function drawIcon(size: number, color: string): ImageData {
+  const c = new OffscreenCanvas(size, size);
+  const g = c.getContext("2d")!;
+  g.scale(size / 128, size / 128);
+  g.fillStyle = color;
+  const rr = (x: number, y: number, w: number, h: number, r: number) => {
+    g.beginPath();
+    g.roundRect(x, y, w, h, r);
+    g.fill();
+  };
+  rr(52, 4, 24, 14, 5);
+  g.fillRect(59, 14, 10, 12);
+  g.save();
+  g.translate(105, 28);
+  g.rotate(Math.PI / 4);
+  rr(-9, -6, 18, 12, 4);
+  g.restore();
+  g.beginPath();
+  g.arc(64, 74, 50, 0, Math.PI * 2);
+  g.fill();
+  g.fillStyle = "#ffffff";
+  g.beginPath();
+  g.arc(64, 74, 38, 0, Math.PI * 2);
+  g.fill();
+  g.strokeStyle = color;
+  g.lineCap = "round";
+  g.lineWidth = 10;
+  g.beginPath();
+  g.moveTo(64, 74);
+  g.lineTo(64, 44);
+  g.stroke();
+  g.lineWidth = 8;
+  g.beginPath();
+  g.moveTo(64, 74);
+  g.lineTo(84, 86);
+  g.stroke();
+  g.fillStyle = color;
+  g.beginPath();
+  g.arc(64, 74, 8, 0, Math.PI * 2);
+  g.fill();
+  return g.getImageData(0, 0, size, size);
+}
+
+let lastIconKey = "";
 async function updateAction(state: UiState) {
-  const kind = state.timer ? "icon_running" : "icon";
-  await chrome.action.setIcon({
-    path: {
-      16: `/icons/16_${kind}.png`,
-      48: `/icons/48_${kind}.png`,
-      96: `/icons/96_${kind}.png`,
-      128: `/icons/128_${kind}.png`,
-    },
-  });
+  const color = state.timer ? RUNNING_COLOR : accentPalette(state.settings.accent).light;
+  if (color !== lastIconKey) {
+    await chrome.action.setIcon({ imageData: { 16: drawIcon(16, color), 32: drawIcon(32, color), 48: drawIcon(48, color) } });
+    lastIconKey = color;
+  }
   const pending = state.queue.length;
   if (pending > 0) {
     await chrome.action.setBadgeBackgroundColor({ color: "#e8710a" });
@@ -380,6 +423,7 @@ const handlers: { [K in RequestType]: Handler<K> } = {
       if (settings.theme && ["system", "light", "dark"].includes(settings.theme)) s.settings.theme = settings.theme;
       if (settings.panelMode && ["app", "always", "off"].includes(settings.panelMode))
         s.settings.panelMode = settings.panelMode;
+      if (settings.accent !== undefined && isHexColor(settings.accent)) s.settings.accent = settings.accent.toLowerCase();
       if (settings.recentDays !== undefined) {
         s.settings.recentDays = Math.min(90, Math.max(1, Math.round(Number(settings.recentDays) || 14)));
       }
@@ -542,6 +586,7 @@ chrome.runtime.onConnect.addListener(async (port) => {
     running: !!st.timer,
     issueId: st.timer?.issue.idReadable ?? null,
     start: st.timer?.start ?? null,
+    accent: st.settings.accent,
   } satisfies PanelStatus);
 });
 

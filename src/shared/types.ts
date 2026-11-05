@@ -66,12 +66,15 @@ export interface Settings {
   theme: Theme;
   recentDays: number;
   panelMode: PanelMode;
+  /** user-picked accent colour, "#rrggbb" */
+  accent: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: "system",
   recentDays: 14,
   panelMode: "app",
+  accent: "#0f7b6c",
 };
 
 /** Everything the UI needs to render. Pushed from background on every change. */

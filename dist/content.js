@@ -36,10 +36,10 @@
         box-shadow: 0 4px 16px rgba(0,0,0,.18); user-select: none;
       }
       .pill:hover { box-shadow: 0 6px 20px rgba(0,0,0,.24); }
-      .pill:focus-visible { outline: 2px solid #0f7b6c; outline-offset: 2px; }
+      .pill:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
       .pill.running { background: #e8710a; color: #fff; border-color: #e8710a; }
       .pill svg { flex: none; }
-      .pill svg .b, .pill svg .h circle { fill: #0f7b6c; } .pill svg .h path { stroke: #0f7b6c; } .pill svg .f { fill: #fff; }
+      .pill { --acc: #0f7b6c; } .pill svg .b, .pill svg .h circle { fill: var(--acc); } .pill svg .h path { stroke: var(--acc); } .pill svg .f { fill: #fff; }
       .pill.running svg .b { fill: #fff; } .pill.running svg .f { fill: #e8710a; } .pill.running svg .h circle { fill: #fff; } .pill.running svg .h path { stroke: #fff; }
       .time { font-variant-numeric: tabular-nums; }
       .frame {
@@ -79,10 +79,11 @@
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && frameBox.classList.contains("open")) setOpen(false);
     });
-    let status = { running: false, issueId: null, start: null };
+    let status = { running: false, issueId: null, start: null, accent: "#0f7b6c" };
     let tick;
     const render = () => {
       pill.classList.toggle("running", status.running);
+      if (/^#[0-9a-f]{6}$/i.test(status.accent)) pill.style.setProperty("--acc", status.accent);
       if (status.running && status.start) {
         label.innerHTML = "";
         const id = document.createElement("span");

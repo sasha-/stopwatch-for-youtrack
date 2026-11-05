@@ -27,7 +27,7 @@ FEATURES
 • Works offline: if YouTrack can't be reached, the work item is kept and sent automatically later.
 • Recent work grouped by week and day with totals; restart or delete entries.
 • Toolbar popup in normal windows, plus a floating stopwatch inside YouTrack when it runs as an app window (no toolbar).
-• Multiple YouTrack accounts; light and dark theme.
+• Multiple YouTrack accounts; light and dark theme; pick your own accent colour.
 
 SECURITY AND PRIVACY
 • Paste your YouTrack permanent token once. It is encrypted (AES-256-GCM) with a key generated in your browser that cannot be exported, and only the extension's background worker can use it.

@@ -12754,7 +12754,63 @@ var require_jsx_runtime = __commonJS({
 var import_client = __toESM(require_client(), 1);
 
 // src/ui/App.tsx
-var import_react8 = __toESM(require_react(), 1);
+var import_react9 = __toESM(require_react(), 1);
+
+// src/shared/color.ts
+var DEFAULT_ACCENT = "#0f7b6c";
+var ACCENT_PRESETS = [
+  { name: "Teal", color: "#0f7b6c" },
+  { name: "Blue", color: "#1a73e8" },
+  { name: "Indigo", color: "#4f46e5" },
+  { name: "Purple", color: "#8e44ad" },
+  { name: "Pink", color: "#c2185b" },
+  { name: "Red", color: "#d93025" },
+  { name: "Green", color: "#2e7d32" },
+  { name: "Graphite", color: "#4a5568" }
+];
+function isHexColor(s) {
+  return typeof s === "string" && /^#[0-9a-f]{6}$/i.test(s);
+}
+function rgb(hex2) {
+  const n = parseInt(hex2.slice(1), 16);
+  return [n >> 16 & 255, n >> 8 & 255, n & 255];
+}
+function hex([r, g, b]) {
+  return "#" + [r, g, b].map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0")).join("");
+}
+function mix(a, b, t) {
+  const x = rgb(a), y = rgb(b);
+  return hex(x.map((v, i) => v + (y[i] - v) * t));
+}
+function luminance(c) {
+  const ch = rgb(c).map((v) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+function contrast(a, b) {
+  const [l1, l2] = [luminance(a), luminance(b)].sort((p, q) => q - p);
+  return (l1 + 0.05) / (l2 + 0.05);
+}
+function onColor(bg) {
+  return contrast(bg, "#ffffff") >= contrast(bg, "#111111") ? "#ffffff" : "#111111";
+}
+function accentPalette(input) {
+  const base = isHexColor(input) ? input.toLowerCase() : DEFAULT_ACCENT;
+  let light = base;
+  for (let i = 0; i < 12 && contrast(light, "#ffffff") < 3.2; i++) light = mix(light, "#000000", 0.12);
+  let dark = mix(base, "#ffffff", 0.25);
+  for (let i = 0; i < 12 && contrast(dark, "#1e1f22") < 4; i++) dark = mix(dark, "#ffffff", 0.15);
+  return {
+    light,
+    lightFg: onColor(light),
+    lightSoft: mix(light, "#ffffff", 0.88),
+    dark,
+    darkFg: onColor(dark),
+    darkSoft: mix(dark, "#1e1f22", 0.8)
+  };
+}
 
 // src/ui/components/common.tsx
 var import_react = __toESM(require_react(), 1);
@@ -13341,6 +13397,7 @@ function Recent(props) {
 }
 
 // src/ui/components/Settings.tsx
+var import_react7 = __toESM(require_react(), 1);
 var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
 function Settings(props) {
   const { state, onState } = props;
@@ -13391,6 +13448,8 @@ function Settings(props) {
         /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("option", { value: "dark", children: "Dark" })
       ] })
     ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "field-label", id: "accent-label", children: "Accent colour" }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(AccentPicker, { value: state.settings.accent, onChange: (accent) => set({ accent }) }),
     /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("h3", { children: "In-page panel" }),
     /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("label", { className: "inline", children: [
       "Show on YouTrack pages",
@@ -13424,13 +13483,50 @@ function Settings(props) {
     ] })
   ] });
 }
+function AccentPicker({ value, onChange }) {
+  const isPreset = ACCENT_PRESETS.some((p) => p.color === value);
+  const timer = (0, import_react7.useRef)();
+  (0, import_react7.useEffect)(() => () => clearTimeout(timer.current), []);
+  const pickCustom = (c) => {
+    document.documentElement.style.setProperty("--ua-light", c);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => onChange(c), 250);
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "swatches", role: "radiogroup", "aria-labelledby": "accent-label", children: [
+    ACCENT_PRESETS.map((p) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+      "button",
+      {
+        type: "button",
+        role: "radio",
+        "aria-checked": p.color === value,
+        "aria-label": p.name,
+        title: p.name,
+        className: "swatch",
+        style: { background: p.color },
+        onClick: () => onChange(p.color)
+      },
+      p.color
+    )),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+      "label",
+      {
+        className: "swatch custom",
+        title: "Custom colour",
+        "aria-checked": !isPreset,
+        role: "radio",
+        style: !isPreset ? { background: value } : void 0,
+        children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("input", { type: "color", value, "aria-label": "Custom colour", onInput: (e) => pickCustom(e.target.value) })
+      }
+    )
+  ] });
+}
 
 // src/ui/components/Timer.tsx
-var import_react7 = __toESM(require_react(), 1);
+var import_react8 = __toESM(require_react(), 1);
 var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
 function useWorkTypes(projectId) {
-  const [types, setTypes] = (0, import_react7.useState)([]);
-  (0, import_react7.useEffect)(() => {
+  const [types, setTypes] = (0, import_react8.useState)([]);
+  (0, import_react8.useEffect)(() => {
     if (!projectId) return;
     let alive = true;
     call("worktypes:get", { projectId }).then(
@@ -13444,10 +13540,10 @@ function useWorkTypes(projectId) {
   return types;
 }
 function Timer({ timer, baseUrl, onState }) {
-  const [now, setNow] = (0, import_react7.useState)(Date.now());
+  const [now, setNow] = (0, import_react8.useState)(Date.now());
   const workTypes = useWorkTypes(timer.issue.projectId);
   const { busy, error, run } = useAction();
-  (0, import_react7.useEffect)(() => {
+  (0, import_react8.useEffect)(() => {
     const t = setInterval(() => setNow(Date.now()), 1e3);
     return () => clearInterval(t);
   }, []);
@@ -13531,28 +13627,38 @@ function Timer({ timer, baseUrl, onState }) {
 var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
 function App({ mode: mode2 }) {
   const [state, setState, loadError] = useUiState();
-  const [view, setView] = (0, import_react8.useState)("main");
+  const [view, setView] = (0, import_react9.useState)("main");
   const refresh = useAction();
   const recent = useRecent(
     state ?? { currentAccountId: null, timer: null, queue: [], settings: { recentDays: 0 } }
   );
-  const recentIssues = (0, import_react8.useMemo)(() => {
+  const recentIssues = (0, import_react9.useMemo)(() => {
     const seen = /* @__PURE__ */ new Map();
     for (const it of recent.items ?? []) if (!seen.has(it.issue.idReadable)) seen.set(it.issue.idReadable, it.issue);
     return [...seen.values()];
   }, [recent.items]);
-  (0, import_react8.useEffect)(() => {
+  (0, import_react9.useEffect)(() => {
     const theme = state?.settings.theme ?? "system";
     if (theme === "system") delete document.documentElement.dataset.theme;
     else document.documentElement.dataset.theme = theme;
   }, [state?.settings.theme]);
+  (0, import_react9.useEffect)(() => {
+    const p = accentPalette(state?.settings.accent ?? "");
+    const st = document.documentElement.style;
+    st.setProperty("--ua-light", p.light);
+    st.setProperty("--ua-light-fg", p.lightFg);
+    st.setProperty("--ua-light-soft", p.lightSoft);
+    st.setProperty("--ua-dark", p.dark);
+    st.setProperty("--ua-dark-fg", p.darkFg);
+    st.setProperty("--ua-dark-soft", p.darkSoft);
+  }, [state?.settings.accent]);
   if (!state) {
     return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "loading", children: loadError ? /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(ErrorNote, { children: loadError }) : "Loading\u2026" });
   }
   const account = state.accounts.find((a) => a.id === state.currentAccountId) ?? null;
   const header = /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("header", { className: "top", children: [
     /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "brand", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "icons/icon.svg", alt: "", width: 22, height: 22 }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Logo, {}),
       /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { children: "Stopwatch" }),
       account && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "who", title: account.baseUrl, children: account.name })
     ] }),
@@ -13613,6 +13719,20 @@ function App({ mode: mode2 }) {
       /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Icon, { name: "lock", size: 14 }),
       " Connected. You can close this tab and use Stopwatch from the toolbar."
     ] })
+  ] });
+}
+function Logo() {
+  return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("svg", { viewBox: "0 0 128 128", width: 22, height: 22, "aria-hidden": "true", style: { color: "var(--accent)" }, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("g", { fill: "currentColor", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("rect", { x: "52", y: "4", width: "24", height: "14", rx: "5" }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("rect", { x: "59", y: "14", width: "10", height: "12" }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("rect", { x: "96", y: "22", width: "18", height: "12", rx: "4", transform: "rotate(45 105 28)" }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("circle", { cx: "64", cy: "74", r: "50" })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("circle", { cx: "64", cy: "74", r: "38", fill: "#fff" }),
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M64 74 L64 44", stroke: "currentColor", strokeWidth: "10", strokeLinecap: "round" }),
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M64 74 L84 86", stroke: "currentColor", strokeWidth: "8", strokeLinecap: "round", opacity: "0.35" }),
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("circle", { cx: "64", cy: "74", r: "8", fill: "currentColor" })
   ] });
 }
 

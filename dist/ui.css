@@ -5,9 +5,9 @@
   --fg: #1f2328;
   --fg-2: #5e6670;
   --line: #e1e5ea;
-  --accent: #0f7b6c;
-  --accent-fg: #ffffff;
-  --accent-soft: #e3f3f0;
+  --accent: var(--ua-light, #0f7b6c);
+  --accent-fg: var(--ua-light-fg, #ffffff);
+  --accent-soft: var(--ua-light-soft, #e3f3f0);
   --danger: #d93025;
   --warn-bg: #fff4e5;
   --warn-fg: #8a4b00;
@@ -21,9 +21,9 @@
     --fg: #dfe1e5;
     --fg-2: #9ba1a8;
     --line: #3c3f44;
-    --accent: #3cc2ab;
-    --accent-fg: #0b1620;
-    --accent-soft: #173a35;
+    --accent: var(--ua-dark, #3cc2ab);
+    --accent-fg: var(--ua-dark-fg, #0b1620);
+    --accent-soft: var(--ua-dark-soft, #173a35);
     --danger: #f28b82;
     --warn-bg: #3a2c16;
     --warn-fg: #f5c97a;
@@ -36,9 +36,9 @@
   --fg: #dfe1e5;
   --fg-2: #9ba1a8;
   --line: #3c3f44;
-  --accent: #3cc2ab;
-  --accent-fg: #0b1620;
-  --accent-soft: #173a35;
+  --accent: var(--ua-dark, #3cc2ab);
+  --accent-fg: var(--ua-dark-fg, #0b1620);
+  --accent-soft: var(--ua-dark-soft, #173a35);
   --danger: #f28b82;
   --warn-bg: #3a2c16;
   --warn-fg: #f5c97a;
@@ -518,4 +518,56 @@ label.inline.grow select {
   border-top: 1px solid var(--line);
   padding-top: 10px;
   margin-top: 16px;
+}
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 4px 0 2px;
+}
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 0 0 1px var(--line);
+}
+.swatch[aria-checked=true] {
+  box-shadow: 0 0 0 2px var(--fg);
+}
+.swatch:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+.swatch.custom {
+  display: block;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+  background:
+    conic-gradient(
+      red,
+      yellow,
+      lime,
+      aqua,
+      blue,
+      magenta,
+      red);
+}
+.swatch.custom input {
+  position: absolute;
+  inset: -6px;
+  width: 40px;
+  height: 40px;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+}
+.field-label {
+  font-weight: 500;
+  margin: 12px 0 2px;
 }

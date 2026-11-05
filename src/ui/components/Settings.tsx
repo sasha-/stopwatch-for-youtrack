@@ -1,6 +1,8 @@
 import type { PanelMode, Theme, UiState } from "../../shared/types";
 import { call, useAction } from "../rpc";
 import { ConfirmIconButton, ErrorNote, Icon } from "./common";
+import { ACCENT_PRESETS } from "../../shared/color";
+import { useEffect, useRef } from "react";
 
 export function Settings(props: { state: UiState; onState: (s: UiState) => void; onAddAccount: () => void }) {
   const { state, onState } = props;
@@ -49,6 +51,11 @@ export function Settings(props: { state: UiState; onState: (s: UiState) => void;
         </select>
       </label>
 
+      <div className="field-label" id="accent-label">
+        Accent colour
+      </div>
+      <AccentPicker value={state.settings.accent} onChange={(accent) => set({ accent })} />
+
       <h3>In-page panel</h3>
       <label className="inline">
         Show on YouTrack pages
@@ -82,5 +89,43 @@ export function Settings(props: { state: UiState; onState: (s: UiState) => void;
         access to the server.
       </p>
     </section>
+  );
+}
+
+function AccentPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
+  const isPreset = ACCENT_PRESETS.some((p) => p.color === value);
+  // the native colour dialog fires many input events while dragging; save the last one
+  const timer = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const pickCustom = (c: string) => {
+    document.documentElement.style.setProperty("--ua-light", c); // instant preview
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => onChange(c), 250);
+  };
+  return (
+    <div className="swatches" role="radiogroup" aria-labelledby="accent-label">
+      {ACCENT_PRESETS.map((p) => (
+        <button
+          key={p.color}
+          type="button"
+          role="radio"
+          aria-checked={p.color === value}
+          aria-label={p.name}
+          title={p.name}
+          className="swatch"
+          style={{ background: p.color }}
+          onClick={() => onChange(p.color)}
+        />
+      ))}
+      <label
+        className="swatch custom"
+        title="Custom colour"
+        aria-checked={!isPreset}
+        role="radio"
+        style={!isPreset ? { background: value } : undefined}
+      >
+        <input type="color" value={value} aria-label="Custom colour" onInput={(e) => pickCustom((e.target as HTMLInputElement).value)} />
+      </label>
+    </div>
   );
 }

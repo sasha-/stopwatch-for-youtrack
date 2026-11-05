@@ -14,7 +14,7 @@ You paste your YouTrack token once; it is stored encrypted and never asked for a
 - **Works offline**: work items that can't be sent are kept and retried automatically.
 - **Recent work**: grouped by week and day with totals; restart or delete entries.
 - **Toolbar or in-page**: a toolbar popup in normal windows, and a floating button inside YouTrack when it runs as an app window (`chrome --app=…` or installed as an app), which has no toolbar.
-- Several YouTrack accounts, light/dark theme.
+- Several YouTrack accounts, light/dark theme, your choice of accent colour.
 
 ## Security
 

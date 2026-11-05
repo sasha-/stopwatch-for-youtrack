@@ -12,11 +12,59 @@ function durationMinutes(start, end) {
   return m > 0 ? m : 1;
 }
 
+// src/shared/color.ts
+var DEFAULT_ACCENT = "#0f7b6c";
+var RUNNING_COLOR = "#e8710a";
+function isHexColor(s) {
+  return typeof s === "string" && /^#[0-9a-f]{6}$/i.test(s);
+}
+function rgb(hex2) {
+  const n = parseInt(hex2.slice(1), 16);
+  return [n >> 16 & 255, n >> 8 & 255, n & 255];
+}
+function hex([r, g, b]) {
+  return "#" + [r, g, b].map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0")).join("");
+}
+function mix(a, b, t) {
+  const x = rgb(a), y = rgb(b);
+  return hex(x.map((v, i) => v + (y[i] - v) * t));
+}
+function luminance(c) {
+  const ch = rgb(c).map((v) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+function contrast(a, b) {
+  const [l1, l2] = [luminance(a), luminance(b)].sort((p, q) => q - p);
+  return (l1 + 0.05) / (l2 + 0.05);
+}
+function onColor(bg) {
+  return contrast(bg, "#ffffff") >= contrast(bg, "#111111") ? "#ffffff" : "#111111";
+}
+function accentPalette(input) {
+  const base = isHexColor(input) ? input.toLowerCase() : DEFAULT_ACCENT;
+  let light = base;
+  for (let i = 0; i < 12 && contrast(light, "#ffffff") < 3.2; i++) light = mix(light, "#000000", 0.12);
+  let dark = mix(base, "#ffffff", 0.25);
+  for (let i = 0; i < 12 && contrast(dark, "#1e1f22") < 4; i++) dark = mix(dark, "#ffffff", 0.15);
+  return {
+    light,
+    lightFg: onColor(light),
+    lightSoft: mix(light, "#ffffff", 0.88),
+    dark,
+    darkFg: onColor(dark),
+    darkSoft: mix(dark, "#1e1f22", 0.8)
+  };
+}
+
 // src/shared/types.ts
 var DEFAULT_SETTINGS = {
   theme: "system",
   recentDays: 14,
-  panelMode: "app"
+  panelMode: "app",
+  accent: "#0f7b6c"
 };
 
 // src/background/store.ts
@@ -520,7 +568,8 @@ async function broadcast() {
   const status = {
     running: !!state.timer,
     issueId: state.timer?.issue.idReadable ?? null,
-    start: state.timer?.start ?? null
+    start: state.timer?.start ?? null,
+    accent: state.settings.accent
   };
   for (const p of panelPorts) {
     try {
@@ -532,16 +581,55 @@ async function broadcast() {
   await updateAction(state).catch((e) => console.warn("[Stopwatch] toolbar icon", e));
   return state;
 }
+function drawIcon(size, color) {
+  const c = new OffscreenCanvas(size, size);
+  const g = c.getContext("2d");
+  g.scale(size / 128, size / 128);
+  g.fillStyle = color;
+  const rr = (x, y, w, h, r) => {
+    g.beginPath();
+    g.roundRect(x, y, w, h, r);
+    g.fill();
+  };
+  rr(52, 4, 24, 14, 5);
+  g.fillRect(59, 14, 10, 12);
+  g.save();
+  g.translate(105, 28);
+  g.rotate(Math.PI / 4);
+  rr(-9, -6, 18, 12, 4);
+  g.restore();
+  g.beginPath();
+  g.arc(64, 74, 50, 0, Math.PI * 2);
+  g.fill();
+  g.fillStyle = "#ffffff";
+  g.beginPath();
+  g.arc(64, 74, 38, 0, Math.PI * 2);
+  g.fill();
+  g.strokeStyle = color;
+  g.lineCap = "round";
+  g.lineWidth = 10;
+  g.beginPath();
+  g.moveTo(64, 74);
+  g.lineTo(64, 44);
+  g.stroke();
+  g.lineWidth = 8;
+  g.beginPath();
+  g.moveTo(64, 74);
+  g.lineTo(84, 86);
+  g.stroke();
+  g.fillStyle = color;
+  g.beginPath();
+  g.arc(64, 74, 8, 0, Math.PI * 2);
+  g.fill();
+  return g.getImageData(0, 0, size, size);
+}
+var lastIconKey = "";
 async function updateAction(state) {
-  const kind = state.timer ? "icon_running" : "icon";
-  await chrome.action.setIcon({
-    path: {
-      16: `/icons/16_${kind}.png`,
-      48: `/icons/48_${kind}.png`,
-      96: `/icons/96_${kind}.png`,
-      128: `/icons/128_${kind}.png`
-    }
-  });
+  const color = state.timer ? RUNNING_COLOR : accentPalette(state.settings.accent).light;
+  if (color !== lastIconKey) {
+    await chrome.action.setIcon({ imageData: { 16: drawIcon(16, color), 32: drawIcon(32, color), 48: drawIcon(48, color) } });
+    lastIconKey = color;
+  }
   const pending = state.queue.length;
   if (pending > 0) {
     await chrome.action.setBadgeBackgroundColor({ color: "#e8710a" });
@@ -775,6 +863,7 @@ var handlers = {
       if (settings.theme && ["system", "light", "dark"].includes(settings.theme)) s.settings.theme = settings.theme;
       if (settings.panelMode && ["app", "always", "off"].includes(settings.panelMode))
         s.settings.panelMode = settings.panelMode;
+      if (settings.accent !== void 0 && isHexColor(settings.accent)) s.settings.accent = settings.accent.toLowerCase();
       if (settings.recentDays !== void 0) {
         s.settings.recentDays = Math.min(90, Math.max(1, Math.round(Number(settings.recentDays) || 14)));
       }
@@ -910,7 +999,8 @@ chrome.runtime.onConnect.addListener(async (port) => {
   port.postMessage({
     running: !!st.timer,
     issueId: st.timer?.issue.idReadable ?? null,
-    start: st.timer?.start ?? null
+    start: st.timer?.start ?? null,
+    accent: st.settings.accent
   });
 });
 async function boot() {

@@ -47,6 +47,7 @@ export interface PanelStatus {
   running: boolean;
   issueId: string | null;
   start: number | null;
+  accent: string;
 }
 
 export const STATE_EVENT = "ytsw:state";

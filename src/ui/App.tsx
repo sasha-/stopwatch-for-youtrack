@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { IssueRef } from "../shared/types";
 import type { UiState } from "../shared/types";
+import { accentPalette } from "../shared/color";
 import { Icon, IconButton, ErrorNote } from "./components/common";
 import { Login } from "./components/Login";
 import { Picker } from "./components/Picker";
@@ -31,6 +32,17 @@ export function App({ mode }: { mode: Mode }) {
     else document.documentElement.dataset.theme = theme;
   }, [state?.settings.theme]);
 
+  useEffect(() => {
+    const p = accentPalette(state?.settings.accent ?? "");
+    const st = document.documentElement.style;
+    st.setProperty("--ua-light", p.light);
+    st.setProperty("--ua-light-fg", p.lightFg);
+    st.setProperty("--ua-light-soft", p.lightSoft);
+    st.setProperty("--ua-dark", p.dark);
+    st.setProperty("--ua-dark-fg", p.darkFg);
+    st.setProperty("--ua-dark-soft", p.darkSoft);
+  }, [state?.settings.accent]);
+
   if (!state) {
     return <div className="loading">{loadError ? <ErrorNote>{loadError}</ErrorNote> : "Loading…"}</div>;
   }
@@ -40,7 +52,7 @@ export function App({ mode }: { mode: Mode }) {
   const header = (
     <header className="top">
       <div className="brand">
-        <img src="icons/icon.svg" alt="" width={22} height={22} />
+        <Logo />
         <span>Stopwatch</span>
         {account && <span className="who" title={account.baseUrl}>{account.name}</span>}
       </div>
@@ -116,5 +128,23 @@ export function App({ mode }: { mode: Mode }) {
         </p>
       )}
     </div>
+  );
+}
+
+/** Stopwatch mark drawn in the current accent colour. */
+function Logo() {
+  return (
+    <svg viewBox="0 0 128 128" width={22} height={22} aria-hidden="true" style={{ color: "var(--accent)" }}>
+      <g fill="currentColor">
+        <rect x="52" y="4" width="24" height="14" rx="5" />
+        <rect x="59" y="14" width="10" height="12" />
+        <rect x="96" y="22" width="18" height="12" rx="4" transform="rotate(45 105 28)" />
+        <circle cx="64" cy="74" r="50" />
+      </g>
+      <circle cx="64" cy="74" r="38" fill="#fff" />
+      <path d="M64 74 L64 44" stroke="currentColor" strokeWidth="10" strokeLinecap="round" />
+      <path d="M64 74 L84 86" stroke="currentColor" strokeWidth="8" strokeLinecap="round" opacity="0.35" />
+      <circle cx="64" cy="74" r="8" fill="currentColor" />
+    </svg>
   );
 }
