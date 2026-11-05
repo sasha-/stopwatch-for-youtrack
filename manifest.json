@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "Stopwatch for YouTrack",
+  "version": "1.0.0",
+  "description": "One-click stopwatch for YouTrack time tracking. Logs work items, works offline, and keeps your token encrypted.",
+  "minimum_chrome_version": "120",
+  "icons": {
+    "16": "icons/16_icon.png",
+    "48": "icons/48_icon.png",
+    "96": "icons/96_icon.png",
+    "128": "icons/128_icon.png"
+  },
+  "action": {
+    "default_title": "Stopwatch for YouTrack",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/16_icon.png",
+      "48": "icons/48_icon.png",
+      "96": "icons/96_icon.png",
+      "128": "icons/128_icon.png"
+    }
+  },
+  "options_ui": {
+    "page": "popup.html?view=options",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "dist/background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "storage",
+    "alarms",
+    "scripting"
+  ],
+  "optional_host_permissions": [
+    "https://*/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "panel.html"
+      ],
+      "matches": [
+        "https://*/*"
+      ]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'none'; form-action 'none'"
+  },
+  "short_name": "Stopwatch"
+}

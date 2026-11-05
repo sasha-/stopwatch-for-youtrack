@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stopwatch for YouTrack</title>
+<link rel="icon" href="icon.png">
+<style>
+  :root { --fg:#1f2328; --fg2:#5e6670; --bg:#fff; --line:#e1e5ea; --accent:#0f7b6c; color-scheme: light dark; }
+  @media (prefers-color-scheme: dark) { :root { --fg:#dfe1e5; --fg2:#9ba1a8; --bg:#1e1f22; --line:#3c3f44; --accent:#3cc2ab; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:32px 16px 64px; }
+  header { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  header img { width:48px; height:48px; }
+  a { color:var(--accent); }
+  table { border-collapse:collapse; width:100%; font-size:14px; display:block; overflow-x:auto; }
+  th, td { border:1px solid var(--line); padding:6px 10px; text-align:left; vertical-align:top; }
+  code { font-size:.9em; }
+  footer { color:var(--fg2); font-size:14px; margin-top:40px; }
+</style>
+</head>
+<body><main>
+<header><img src="icon.png" alt=""><strong>Stopwatch for YouTrack</strong></header>
+<h1>Stopwatch for YouTrack</h1>
+<p>A Chrome extension that adds a one-click stopwatch to YouTrack time tracking. Pick an issue, start the clock, stop it, and your time is logged as a YouTrack work item. Your token is stored encrypted, and no data goes anywhere except your own YouTrack server.</p>
+<ul>
+<li>Issues from the page you are on, plus search across YouTrack as you type</li>
+<li>Start/stop, edit start time, choose work type</li>
+<li>Offline queue with automatic retry</li>
+<li>Recent work by week and day</li>
+<li>Works in the toolbar, or inside YouTrack app windows</li>
+</ul>
+<p><a href="privacy.html">Privacy policy</a> · Source code on GitHub</p>
+<p style="font-size:14px">YouTrack is a trademark of JetBrains s.r.o. This project is not affiliated with or endorsed by JetBrains.</p>
+<footer><a href="index.html">Home</a> · <a href="privacy.html">Privacy policy</a></footer>
+</main></body></html>
